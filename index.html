@@ -1049,8 +1049,8 @@
 
     async function loadPrice(){
       try{
-        updateEl.textContent="atualizando...";
-        const response = await fetch("/.netlify/functions/price",{
+        if(updateEl) updateEl.textContent="atualizando...";
+        const response = await fetch("/.netlify/functions/price?t=" + Date.now(),{
           headers:{"Accept":"application/json"},
           cache:"no-store"
         });
@@ -1064,13 +1064,16 @@
         const current=Number(data.price);
         if(!Number.isFinite(current)) throw new Error("Preço inválido");
 
-        priceEl.textContent=formatPrice(current);
-        updateEl.textContent=new Date().toLocaleTimeString("pt-BR",{
-          hour:"2-digit",minute:"2-digit",second:"2-digit"
-        });
+        if(priceEl) priceEl.textContent=formatPrice(current);
+
+        if(updateEl){
+          updateEl.textContent=new Date().toLocaleTimeString("pt-BR",{
+            hour:"2-digit",minute:"2-digit",second:"2-digit"
+          });
+        }
       }catch(error){
-        console.error(error);
-        updateEl.textContent="falha";
+        console.error("Erro ao atualizar a cotação:", error);
+        if(updateEl) updateEl.textContent="falha";
       }
     }
 
@@ -1097,6 +1100,11 @@
         const current=Number(latest.close);
         const change=current-initial;
         const changePct=initial?(change/initial)*100:0;
+
+        // Fallback: mantém a cotação atualizada mesmo se o endpoint /price falhar.
+        if(priceEl && Number.isFinite(current)){
+          priceEl.textContent=formatPrice(current);
+        }
 
         drawChart(values);
 
