@@ -815,11 +815,11 @@
         <article class="panel chart-panel">
           <div class="chart-head">
             <div>
-              <div class="eyebrow">Gráfico ao vivo • últimos candles</div>
+              <div class="eyebrow">Gráfico ao vivo • XAU/USD</div>
             </div>
             <div class="trend-box">
-              <strong id="trendDirection">Carregando tendência...</strong>
-              <span id="trendCaption">Gráfico e medidores atualizados a cada 15 minutos</span>
+              <strong id="trendDirection">Histórico dos últimos 40 candles</strong>
+              <span id="trendCaption">Timeframe M15 • atualização a cada 15 minutos</span>
             </div>
           </div>
 
@@ -832,79 +832,6 @@
           <div class="chart-foot">
             <span id="oldestTime">Mais antigo</span>
             <span id="latestTime">Mais recente</span>
-          </div>
-        </article>
-
-
-        <article class="panel gauges-panel">
-          <div class="eyebrow">Leitura técnica consolidada</div>
-
-          <div class="gauges-grid">
-            <div class="gauge-card">
-              <div class="gauge-title">Indicadores Técnicos</div>
-
-              <div class="gauge-wrap">
-                <svg class="gauge-svg" viewBox="0 0 200 120" aria-label="Medidor de indicadores técnicos">
-                  <path class="gauge-base" d="M25 100 A75 75 0 0 1 175 100"/>
-                  <path class="gauge-sell" d="M25 100 A75 75 0 0 1 62 35"/>
-                  <path class="gauge-neutral" d="M62 35 A75 75 0 0 1 138 35"/>
-                  <path class="gauge-buy" d="M138 35 A75 75 0 0 1 175 100"/>
-                  <line id="needleTech" class="gauge-needle" x1="100" y1="100" x2="100" y2="43"/>
-                  <circle class="gauge-center" cx="100" cy="100" r="4.5"/>
-                </svg>
-                <div class="gauge-labels">
-                  <span class="left">V</span>
-                  <span class="center">N</span>
-                  <span class="right">C</span>
-                </div>
-              </div>
-
-              <div class="gauge-result soft" id="techResult">Compra Forte</div>
-            </div>
-
-            <div class="gauge-card main">
-              <div class="gauge-title">Resumo</div>
-
-              <div class="gauge-wrap">
-                <svg class="gauge-svg" viewBox="0 0 200 120" aria-label="Medidor de resumo">
-                  <path class="gauge-base" d="M25 100 A75 75 0 0 1 175 100"/>
-                  <path class="gauge-sell" d="M25 100 A75 75 0 0 1 62 35"/>
-                  <path class="gauge-neutral" d="M62 35 A75 75 0 0 1 138 35"/>
-                  <path class="gauge-buy" d="M138 35 A75 75 0 0 1 175 100"/>
-                  <line id="needleSummary" class="gauge-needle" x1="100" y1="100" x2="100" y2="38"/>
-                  <circle class="gauge-center" cx="100" cy="100" r="4.5"/>
-                </svg>
-                <div class="gauge-labels">
-                  <span class="left">VF</span>
-                  <span class="center">N</span>
-                  <span class="right">CF</span>
-                </div>
-              </div>
-
-              <div class="gauge-result" id="summaryResult">Compra Forte</div>
-            </div>
-
-            <div class="gauge-card">
-              <div class="gauge-title">Médias Móveis</div>
-
-              <div class="gauge-wrap">
-                <svg class="gauge-svg" viewBox="0 0 200 120" aria-label="Medidor de médias móveis">
-                  <path class="gauge-base" d="M25 100 A75 75 0 0 1 175 100"/>
-                  <path class="gauge-sell" d="M25 100 A75 75 0 0 1 62 35"/>
-                  <path class="gauge-neutral" d="M62 35 A75 75 0 0 1 138 35"/>
-                  <path class="gauge-buy" d="M138 35 A75 75 0 0 1 175 100"/>
-                  <line id="needleMA" class="gauge-needle" x1="100" y1="100" x2="100" y2="43"/>
-                  <circle class="gauge-center" cx="100" cy="100" r="4.5"/>
-                </svg>
-                <div class="gauge-labels">
-                  <span class="left">V</span>
-                  <span class="center">N</span>
-                  <span class="right">C</span>
-                </div>
-              </div>
-
-              <div class="gauge-result soft" id="maResult">Compra</div>
-            </div>
           </div>
         </article>
       </div>
@@ -1165,7 +1092,7 @@
 
     async function loadAnalysis(){
       try{
-        trendCaption.textContent="Atualizando gráfico e medidores...";
+        trendCaption.textContent="Atualizando candles M15...";
         const response = await fetch("/.netlify/functions/analysis",{
           headers:{"Accept":"application/json"},
           cache:"no-store"
@@ -1196,21 +1123,10 @@
         drawChart(values);
         updateTechnicalSignal(values,current);
 
-        const direction = change>0 ? "↗ Tendência de alta" :
-                          change<0 ? "↘ Tendência de baixa" :
-                          "→ Tendência lateral";
-
-        trendEl.textContent=direction;
-        trendEl.style.color=change>0?"var(--green)":change<0?"var(--red)":"var(--gold)";
+        trendEl.textContent=`Histórico dos últimos ${values.length} candles`;
+        trendEl.style.color="var(--text)";
         trendCaption.textContent=
-          `${values.length} candles M15 • ${changePct>=0?"+":""}${changePct.toFixed(2)}%`;
-
-        const volatility=classifyVolatility(values);
-
-        const normalizedScore=Math.max(-1,Math.min(1,changePct/1.2));
-        updateGauge("needleTech","techResult",normalizedScore*.95);
-        updateGauge("needleSummary","summaryResult",normalizedScore);
-        updateGauge("needleMA","maResult",normalizedScore*.75);
+          `Timeframe M15 • variação do período: ${changePct>=0?"+":""}${changePct.toFixed(2)}%`;
 
         document.getElementById("chartStart").textContent=formatPrice(initial);
         document.getElementById("chartEnd").textContent=formatPrice(current);
@@ -1218,7 +1134,7 @@
         document.getElementById("latestTime").textContent=formatTime(latest.datetime);
       }catch(error){
         console.error(error);
-        trendEl.textContent="Dados indisponíveis";
+        trendEl.textContent="Histórico dos candles indisponível";
         trendEl.style.color="var(--red)";
         trendCaption.textContent="Verifique a configuração no Netlify";
       }
@@ -1243,7 +1159,7 @@
     setInterval(loadPrice,60*1000);
     setInterval(tickCountdown,1000);
 
-    window.addEventListener("resize",()=>loadAnalysis());
+    window.addEventListener("resize",()=>{ if(latestCandles.length) drawChart(latestCandles); });
   </script>
-</body>
+<div id="version-badge" style="position:fixed;bottom:12px;right:18px;padding:6px 10px;border-radius:999px;background:rgba(20,25,35,.85);border:1px solid rgba(80,220,180,.25);color:#9fb3c8;font:600 12px Arial,sans-serif;z-index:9999;">Versão v1.1.0</div></body>
 </html>
