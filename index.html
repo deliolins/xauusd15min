@@ -717,6 +717,17 @@
       mix-blend-mode:normal;
     }
 
+    .signal-box.sell{border-color:rgba(255,102,119,.20);background:linear-gradient(180deg,rgba(255,102,119,.075),rgba(255,102,119,.025));}
+    .signal-box.sell .signal{color:var(--red);}
+    .signal-box.sell .signal-icon{background:var(--red);color:#19070a;}
+    .signal-box.wait{border-color:rgba(233,187,85,.22);background:linear-gradient(180deg,rgba(233,187,85,.08),rgba(233,187,85,.025));}
+    .signal-box.wait .signal{color:var(--gold);}
+    .signal-box.wait .signal-icon{background:var(--gold);color:#1d1504;}
+    .approved.sell{color:var(--red);background:rgba(255,102,119,.09);border-color:rgba(255,102,119,.18);}
+    .approved.wait{color:var(--gold);background:rgba(233,187,85,.09);border-color:rgba(233,187,85,.18);}
+    .fill.sell{background:linear-gradient(90deg,#ff9cab,var(--red));}
+    .fill.wait{background:linear-gradient(90deg,#f6d88c,var(--gold));}
+
     footer{
       margin-top:20px;
       text-align:center;
@@ -774,12 +785,12 @@
 
           <div class="signal-box">
             <div class="signal-top">
-              <div class="eyebrow">Último alerta aprovado</div>
-              <span class="approved">Passou no filtro</span>
+              <div class="eyebrow">Sinal técnico atual</div>
+              <span class="approved" id="signalStatus">Monitorando</span>
             </div>
 
             <div class="signal">
-              <span class="signal-icon">▲</span>
+              <span class="signal-icon" id="signalIcon">▲</span>
               <span id="signal">BUY</span>
             </div>
 
@@ -794,8 +805,8 @@
             <div class="mail-status">
               <div>✉</div>
               <div>
-                <strong>Parâmetros enviados por e-mail</strong>
-                <span id="emailInfo">Último envio realizado às 19:50</span>
+                <strong id="analysisStatusText">Análise atualizada automaticamente</strong>
+                <span id="emailInfo">Aguardando dados do mercado</span>
               </div>
             </div>
           </div>
@@ -903,9 +914,9 @@
         <article class="panel timeline-panel">
           <div class="eyebrow">Detalhes da execução</div>
           <div class="timeline">
-            <div class="timeline-row"><span>Status</span><strong class="positive">Enviado</strong></div>
-            <div class="timeline-row"><span>Último alerta</span><strong id="lastAlert">Hoje, 19:50</strong></div>
-            <div class="timeline-row"><span>Canal</span><strong>E-mail</strong></div>
+            <div class="timeline-row"><span>Status</span><strong class="positive" id="executionStatus">Monitorando</strong></div>
+            <div class="timeline-row"><span>Última atualização</span><strong id="lastAlert">Carregando...</strong></div>
+            <div class="timeline-row"><span>Fonte</span><strong>Preço ao vivo + candles M15</strong></div>
             <div class="timeline-row"><span>Gráfico e medidores</span><strong>A cada 15 minutos</strong></div>
             <div class="timeline-row"><span>Leitura</span><strong>M15</strong></div>
           </div>
@@ -919,20 +930,6 @@
   </main>
 
   <script>
-    const operation = {
-      signal: "BUY",
-      confidence: 88,
-      time: "Hoje, 19:50",
-      reason: "O preço consolidou e encontrou suporte após uma forte pernada de alta. O último candle demonstrou pressão compradora e possível continuação da tendência."
-    };
-
-    document.getElementById("signal").textContent = operation.signal;
-    document.getElementById("confidence").textContent = operation.confidence + "%";
-    document.getElementById("confidenceFill").style.width = Math.min(operation.confidence,100) + "%";
-    document.getElementById("lastAlert").textContent = operation.time;
-    document.getElementById("emailInfo").textContent =
-      "Último envio realizado às " + operation.time.replace("Hoje, ","");
-    document.getElementById("reason").textContent = operation.reason;
 
     const priceEl = document.getElementById("price");
     const updateEl = document.getElementById("liveUpdate");
@@ -940,6 +937,7 @@
     const trendCaption = document.getElementById("trendCaption");
     const canvas = document.getElementById("liveChart");
     const ctx = canvas.getContext("2d");
+    let latestCandles = [];
 
     function formatPrice(value){
       return new Intl.NumberFormat("pt-BR",{
@@ -1047,6 +1045,85 @@
       result.className=cls;
     }
 
+    function ema(values, period){
+      if(!values.length) return 0;
+      const k=2/(period+1);
+      let result=values[0];
+      for(let i=1;i<values.length;i++) result=values[i]*k+result*(1-k);
+      return result;
+    }
+
+    function rsi(values, period=14){
+      if(values.length<=period) return 50;
+      let gains=0, losses=0;
+      for(let i=values.length-period;i<values.length;i++){
+        const diff=values[i]-values[i-1];
+        if(diff>=0) gains+=diff; else losses-=diff;
+      }
+      if(losses===0) return 100;
+      const rs=(gains/period)/(losses/period);
+      return 100-(100/(1+rs));
+    }
+
+    function updateTechnicalSignal(candles, livePrice){
+      if(!Array.isArray(candles) || candles.length<20) return;
+      const closes=candles.map(v=>Number(v.close)).filter(Number.isFinite);
+      if(Number.isFinite(livePrice)) closes[closes.length-1]=livePrice;
+
+      const fast=ema(closes.slice(-20),9);
+      const slow=ema(closes.slice(-30),20);
+      const current=closes[closes.length-1];
+      const previous=closes[closes.length-2];
+      const momentum=(current-previous)/Math.max(previous,1);
+      const rsiValue=rsi(closes,14);
+
+      let score=0;
+      score += fast>slow ? 0.45 : -0.45;
+      score += current>fast ? 0.25 : -0.25;
+      score += momentum>0 ? 0.15 : -0.15;
+      score += rsiValue>55 ? 0.15 : rsiValue<45 ? -0.15 : 0;
+      score=Math.max(-1,Math.min(1,score));
+
+      let signal='AGUARDAR', icon='•', mode='wait';
+      if(score>=0.35){ signal='BUY'; icon='▲'; mode='buy'; }
+      else if(score<=-0.35){ signal='SELL'; icon='▼'; mode='sell'; }
+
+      const confidence=Math.round(signal==='AGUARDAR' ? 55+Math.abs(score)*20 : 70+Math.abs(score)*25);
+      const box=document.querySelector('.signal-box');
+      const status=document.getElementById('signalStatus');
+      const fill=document.getElementById('confidenceFill');
+      const now=new Date();
+      const time=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+      box.classList.remove('sell','wait');
+      status.classList.remove('sell','wait');
+      fill.classList.remove('sell','wait');
+      if(mode!=='buy'){
+        box.classList.add(mode);
+        status.classList.add(mode);
+        fill.classList.add(mode);
+      }
+
+      document.getElementById('signal').textContent=signal;
+      document.getElementById('signalIcon').textContent=icon;
+      document.getElementById('confidence').textContent=confidence+'%';
+      fill.style.width=Math.min(confidence,100)+'%';
+      status.textContent=signal==='AGUARDAR' ? 'SEM CONFIRMAÇÃO' : 'SINAL CONFIRMADO';
+      document.getElementById('emailInfo').textContent='Última atualização às '+time;
+      document.getElementById('lastAlert').textContent='Hoje, '+time;
+      document.getElementById('executionStatus').textContent=signal==='AGUARDAR'?'Aguardando':'Sinal ativo';
+
+      let reason;
+      if(signal==='BUY'){
+        reason=`EMA 9 acima da EMA 20, preço acima da média curta e RSI em ${rsiValue.toFixed(0)}. O conjunto indica pressão compradora no M15.`;
+      }else if(signal==='SELL'){
+        reason=`EMA 9 abaixo da EMA 20, preço abaixo da média curta e RSI em ${rsiValue.toFixed(0)}. O conjunto indica pressão vendedora no M15.`;
+      }else{
+        reason=`Os indicadores estão mistos e o RSI está em ${rsiValue.toFixed(0)}. Não há confirmação técnica suficiente para BUY ou SELL neste momento.`;
+      }
+      document.getElementById('reason').textContent=reason;
+    }
+
     async function loadPrice(){
       try{
         if(updateEl) updateEl.textContent="atualizando...";
@@ -1065,6 +1142,7 @@
         if(!Number.isFinite(current)) throw new Error("Preço inválido");
 
         if(priceEl) priceEl.textContent=formatPrice(current);
+        if(latestCandles.length) updateTechnicalSignal(latestCandles,current);
 
         if(updateEl){
           updateEl.textContent=new Date().toLocaleTimeString("pt-BR",{
@@ -1093,6 +1171,7 @@
         const data=await response.json();
         const values=Array.isArray(data.values)?data.values.slice().reverse():[];
         if(!values.length) throw new Error("Sem candles");
+        latestCandles=values;
 
         const first=values[0];
         const latest=values[values.length-1];
@@ -1107,11 +1186,16 @@
         }
 
         drawChart(values);
+        updateTechnicalSignal(values,current);
 
-        trendEl.textContent="📊 Histórico dos últimos 40 candles";
-        trendEl.style.color="var(--text)";
+        const direction = change>0 ? "↗ Tendência de alta" :
+                          change<0 ? "↘ Tendência de baixa" :
+                          "→ Tendência lateral";
+
+        trendEl.textContent=direction;
+        trendEl.style.color=change>0?"var(--green)":change<0?"var(--red)":"var(--gold)";
         trendCaption.textContent=
-          `Variação do período: ${changePct>=0?"+":""}${changePct.toFixed(2)}%`;
+          `${values.length} candles M15 • ${changePct>=0?"+":""}${changePct.toFixed(2)}%`;
 
         const volatility=classifyVolatility(values);
 
@@ -1142,7 +1226,7 @@
       }
       const m=String(Math.floor(remaining/60)).padStart(2,"0");
       const s=String(remaining%60).padStart(2,"0");
-      document.getElementById("countdown").textContent=`00:${m}:${s}`;
+      const countdownEl=document.getElementById("countdown"); if(countdownEl) countdownEl.textContent=`00:${m}:${s}`;
     }
 
     loadPrice();
