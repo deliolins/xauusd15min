@@ -25,3 +25,5 @@ PUBLICAÇÃO NO NETLIFY
 5. Faça novo deploy.
 
 O bloco do último alerta ainda usa dados demonstrativos até ligarmos o Make ao painel.
+
+Atualização da configuração da API.
