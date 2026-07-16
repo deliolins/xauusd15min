@@ -797,7 +797,7 @@
             <div class="confidence">
               <div class="confidence-head">
                 <span>Confiança</span>
-                <strong id="confidence">88%</strong>
+                <strong id="confidence">--%</strong>
               </div>
               <div class="track"><div class="fill" id="confidenceFill"></div></div>
             </div>
@@ -1077,18 +1077,26 @@
       const momentum=(current-previous)/Math.max(previous,1);
       const rsiValue=rsi(closes,14);
 
-      let score=0;
-      score += fast>slow ? 0.45 : -0.45;
-      score += current>fast ? 0.25 : -0.25;
-      score += momentum>0 ? 0.15 : -0.15;
-      score += rsiValue>55 ? 0.15 : rsiValue<45 ? -0.15 : 0;
+      // Pontuação contínua: reage a pequenas mudanças do preço, em vez de usar blocos fixos.
+      const emaSpreadPct=((fast-slow)/Math.max(current,1))*100;
+      const priceFastPct=((current-fast)/Math.max(current,1))*100;
+      const momentumPct=momentum*100;
+      const rsiBias=(rsiValue-50)/50;
+
+      let score=
+        0.45*Math.tanh(emaSpreadPct/0.08) +
+        0.25*Math.tanh(priceFastPct/0.05) +
+        0.15*Math.tanh(momentumPct/0.04) +
+        0.15*Math.tanh(rsiBias/0.20);
       score=Math.max(-1,Math.min(1,score));
 
       let signal='AGUARDAR', icon='•', mode='wait';
-      if(score>=0.35){ signal='BUY'; icon='▲'; mode='buy'; }
-      else if(score<=-0.35){ signal='SELL'; icon='▼'; mode='sell'; }
+      if(score>=0.30){ signal='BUY'; icon='▲'; mode='buy'; }
+      else if(score<=-0.30){ signal='SELL'; icon='▼'; mode='sell'; }
 
-      const confidence=Math.round(signal==='AGUARDAR' ? 55+Math.abs(score)*20 : 70+Math.abs(score)*25);
+      const confidence=signal==='AGUARDAR'
+        ? 50+Math.abs(score)*28
+        : 60+Math.abs(score)*38;
       const box=document.querySelector('.signal-box');
       const status=document.getElementById('signalStatus');
       const fill=document.getElementById('confidenceFill');
@@ -1106,9 +1114,9 @@
 
       document.getElementById('signal').textContent=signal;
       document.getElementById('signalIcon').textContent=icon;
-      document.getElementById('confidence').textContent=confidence+'%';
-      fill.style.width=Math.min(confidence,100)+'%';
-      status.textContent=signal==='AGUARDAR' ? 'SEM CONFIRMAÇÃO' : 'SINAL CONFIRMADO';
+      document.getElementById('confidence').textContent=confidence.toFixed(1)+'%';
+      fill.style.width=Math.min(confidence,100).toFixed(1)+'%';
+      status.textContent='ATUALIZADO EM TEMPO REAL';
       document.getElementById('emailInfo').textContent='Última atualização às '+time;
       document.getElementById('lastAlert').textContent='Hoje, '+time;
       document.getElementById('executionStatus').textContent=signal==='AGUARDAR'?'Aguardando':'Sinal ativo';
