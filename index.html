@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#06080c">
+  <title>XAU/USD 15min</title>
+  <style>
+    :root{
+      --bg:#06080c;
+      --panel:#0b1119;
+      --panel-2:#101823;
+      --border:rgba(255,255,255,.08);
+      --text:#f5f7fb;
+      --muted:#7f8b9d;
+      --green:#2fd49a;
+      --green-soft:rgba(47,212,154,.09);
+      --red:#ff6677;
+      --gold:#e9bb55;
+      --blue:#6aa8ff;
+      --shadow:0 22px 70px rgba(0,0,0,.34);
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 86% 8%,rgba(233,187,85,.09),transparent 27%),
+        radial-gradient(circle at 8% 92%,rgba(106,168,255,.06),transparent 26%),
+        var(--bg);
+    }
+
+    .app{
+      width:min(1280px,calc(100% - 28px));
+      margin:0 auto;
+      padding:18px 0 40px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom:18px;
+      padding:10px 0;
+    }
+
+    .brand{display:flex;align-items:center;gap:12px}
+
+    .brand-mark{
+      width:46px;height:46px;border-radius:14px;
+      display:grid;place-items:center;
+      color:#0a0d12;
+      font-weight:950;
+      background:linear-gradient(145deg,#fff0b3,var(--gold));
+      box-shadow:0 10px 28px rgba(233,187,85,.16);
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:clamp(1.2rem,3vw,1.7rem);
+      letter-spacing:-.04em;
+    }
+
+    .brand p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:.82rem;
+    }
+
+    .live-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(47,212,154,.22);
+      background:var(--green-soft);
+      color:var(--green);
+      font-size:.8rem;
+      font-weight:800;
+    }
+
+    .pulse{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--green);
+      box-shadow:0 0 0 6px rgba(47,212,154,.08);
+      animation:pulse 1.8s infinite;
+    }
+
+    @keyframes pulse{50%{opacity:.5;transform:scale(.82)}}
+
+    .brand-status{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:6px;
+    }
+
+    .brand-mark.mini{
+      width:40px;
+      height:40px;
+      border-radius:12px;
+      font-size:.76rem;
+      box-shadow:0 8px 20px rgba(233,187,85,.12);
+    }
+
+    .live-pill.compact{
+      padding:5px 8px;
+      gap:6px;
+      font-size:.62rem;
+      letter-spacing:.01em;
+    }
+
+    .live-pill.compact .pulse{
+      width:6px;
+      height:6px;
+      box-shadow:0 0 0 4px rgba(47,212,154,.07);
+    }
+
+    @media(max-width:520px){
+      .topbar{
+        flex-direction:row;
+        align-items:flex-start;
+      }
+
+      .brand-status{
+        flex:0 0 auto;
+      }
+
+      .brand-mark.mini{
+        width:34px;
+        height:34px;
+        font-size:.66rem;
+      }
+
+      .live-pill.compact{
+        font-size:.56rem;
+        padding:4px 7px;
+      }
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:1.45fr .55fr;
+      gap:18px;
+    }
+
+    .stack{display:grid;gap:18px}
+
+    .panel{
+      border:1px solid var(--border);
+      border-radius:22px;
+      background:linear-gradient(180deg,rgba(16,24,35,.96),rgba(9,14,21,.98));
+      box-shadow:var(--shadow);
+    }
+
+    .hero{
+      padding:24px;
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:20px;
+    }
+
+    .eyebrow{
+      color:var(--muted);
+      font-size:.73rem;
+      font-weight:850;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .price{
+      margin-top:16px;
+      font-size:clamp(3rem,8vw,5.7rem);
+      line-height:.95;
+      letter-spacing:-.07em;
+      font-weight:930;
+    }
+
+    .price small{
+      margin-left:10px;
+      color:var(--muted);
+      font-size:.86rem;
+      letter-spacing:0;
+      font-weight:700;
+    }
+
+    .mini-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:21px;
+    }
+
+    .chip{
+      padding:8px 10px;
+      border-radius:11px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.025);
+      color:#c7cfdb;
+      font-size:.78rem;
+      font-weight:700;
+    }
+
+    .signal-box{
+      padding:18px;
+      border:1px solid rgba(47,212,154,.16);
+      border-radius:18px;
+      background:linear-gradient(180deg,rgba(47,212,154,.075),rgba(47,212,154,.025));
+    }
+
+    .signal-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .approved{
+      padding:6px 9px;
+      border-radius:999px;
+      color:var(--green);
+      background:rgba(47,212,154,.09);
+      border:1px solid rgba(47,212,154,.18);
+      font-size:.68rem;
+      font-weight:850;
+      text-transform:uppercase;
+    }
+
+    .signal{
+      margin:18px 0 10px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      color:var(--green);
+      font-size:clamp(2.3rem,6vw,4rem);
+      font-weight:950;
+      letter-spacing:-.06em;
+    }
+
+    .signal-icon{
+      width:48px;height:48px;border-radius:15px;
+      display:grid;place-items:center;
+      background:var(--green);
+      color:#07110d;
+      font-size:1.15rem;
+    }
+
+    .confidence{
+      margin-top:16px;
+    }
+
+    .confidence-head{
+      display:flex;
+      justify-content:space-between;
+      color:var(--muted);
+      font-size:.78rem;
+      margin-bottom:8px;
+    }
+
+    .track{
+      height:9px;border-radius:999px;overflow:hidden;
+      background:rgba(255,255,255,.07);
+    }
+
+    .fill{
+      width:88%;height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg,var(--blue),var(--green));
+    }
+
+    .mail-status{
+      margin-top:14px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      padding:12px 13px;
+      border:1px solid rgba(47,212,154,.14);
+      border-radius:14px;
+      background:rgba(47,212,154,.05);
+    }
+
+    .mail-status strong{
+      display:block;
+      font-size:.82rem;
+    }
+
+    .mail-status span{
+      display:block;
+      margin-top:3px;
+      color:var(--muted);
+      font-size:.73rem;
+    }
+
+    .chart-panel{padding:22px}
+
+    .chart-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:16px;
+    }
+
+    .trend-box{text-align:right}
+
+    .trend-box strong{
+      display:block;
+      color:var(--green);
+      font-size:.95rem;
+    }
+
+    .trend-box span{
+      display:block;
+      margin-top:3px;
+      color:var(--muted);
+      font-size:.74rem;
+    }
+
+    .chart-shell{
+      height:320px;
+      position:relative;
+      overflow:hidden;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px),
+        rgba(255,255,255,.012);
+      background-size:100% 25%, 10% 100%;
+    }
+
+    #liveChart{width:100%;height:100%;display:block}
+
+    .chart-label{
+      position:absolute;
+      padding:6px 8px;
+      border-radius:9px;
+      border:1px solid rgba(47,212,154,.16);
+      background:rgba(6,8,12,.82);
+      color:var(--green);
+      font-size:.7rem;
+      font-weight:800;
+      backdrop-filter:blur(6px);
+    }
+
+    .chart-label.left{left:12px;bottom:12px}
+    .chart-label.right{right:12px;top:12px}
+
+    .chart-foot{
+      display:flex;
+      justify-content:space-between;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:.72rem;
+    }
+
+    .side-panel{padding:22px}
+
+    .status-grid{
+      display:grid;
+      gap:12px;
+      margin-top:15px;
+    }
+
+    .status-card{
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:15px;
+      background:rgba(255,255,255,.018);
+    }
+
+    .status-label{
+      color:var(--muted);
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-weight:800;
+    }
+
+    .status-value{
+      margin-top:7px;
+      font-size:1.05rem;
+      font-weight:850;
+    }
+
+    .positive{color:var(--green)}
+    .warning{color:var(--gold)}
+    .negative{color:var(--red)}
+
+    .analysis-panel{padding:22px}
+
+    .analysis-text{
+      margin:14px 0 0;
+      color:#d6dde7;
+      line-height:1.65;
+      font-size:.96rem;
+    }
+
+    .timeline-panel{padding:22px}
+
+    .timeline{
+      display:grid;
+      gap:14px;
+      margin-top:16px;
+    }
+
+    .timeline-row{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      padding-bottom:13px;
+      border-bottom:1px solid var(--border);
+      color:var(--muted);
+      font-size:.83rem;
+    }
+
+    .timeline-row:last-child{border-bottom:0;padding-bottom:0}
+    .timeline-row strong{color:var(--text);text-align:right}
+
+    .countdown{
+      color:var(--blue)!important;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .gauges-panel{
+      padding:22px;
+    }
+
+    .gauges-grid{
+      display:grid;
+      grid-template-columns:1fr 1.2fr 1fr;
+      gap:18px;
+      align-items:end;
+      margin-top:18px;
+    }
+
+    .gauge-card{
+      padding:18px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:rgba(255,255,255,.018);
+      text-align:center;
+    }
+
+    .gauge-title{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-height:34px;
+      color:var(--text);
+      font-size:.9rem;
+      font-weight:850;
+    }
+
+    .gauge-wrap{
+      position:relative;
+      width:190px;
+      height:112px;
+      margin:10px auto 0;
+    }
+
+    .gauge-card.main .gauge-wrap{
+      width:235px;
+      height:138px;
+    }
+
+    .gauge-svg{
+      width:100%;
+      height:100%;
+      overflow:visible;
+    }
+
+    .gauge-base{
+      fill:none;
+      stroke:rgba(255,255,255,.08);
+      stroke-width:14;
+      stroke-linecap:butt;
+    }
+
+    .gauge-sell{
+      fill:none;
+      stroke:#ff6b5f;
+      stroke-width:14;
+    }
+
+    .gauge-neutral{
+      fill:none;
+      stroke:#dfe3e8;
+      stroke-width:14;
+    }
+
+    .gauge-buy{
+      fill:none;
+      stroke:#34c98f;
+      stroke-width:14;
+    }
+
+    .gauge-needle{
+      stroke:#c8d0dc;
+      stroke-width:2.5;
+      stroke-linecap:round;
+      transform-origin:100px 100px;
+      transition:transform .5s ease;
+    }
+
+    .gauge-center{
+      fill:#c8d0dc;
+    }
+
+    .gauge-labels{
+      position:absolute;
+      inset:0;
+      color:var(--muted);
+      font-size:.68rem;
+      pointer-events:none;
+    }
+
+    .gauge-labels .left{position:absolute;left:5px;bottom:17px}
+    .gauge-labels .center{position:absolute;left:50%;top:7px;transform:translateX(-50%)}
+    .gauge-labels .right{position:absolute;right:5px;bottom:17px}
+
+    .gauge-card.main .gauge-labels{
+      font-size:.7rem;
+    }
+
+    .gauge-result{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:118px;
+      margin-top:8px;
+      padding:8px 14px;
+      border-radius:999px;
+      font-size:.84rem;
+      font-weight:900;
+      color:#05120d;
+      background:var(--green);
+    }
+
+    .gauge-result.soft{
+      color:var(--green);
+      background:rgba(47,212,154,.09);
+      border:1px solid rgba(47,212,154,.15);
+    }
+
+    .gauge-result.warning{
+      color:#211700;
+      background:var(--gold);
+    }
+
+    .gauge-result.negative{
+      color:#1b0508;
+      background:var(--red);
+    }
+
+
+    .hero-analysis{
+      margin-top:24px;
+      padding-top:20px;
+      border-top:1px solid var(--border);
+    }
+
+    .hero-analysis .analysis-text{
+      margin-top:12px;
+      font-size:.9rem;
+      line-height:1.55;
+    }
+
+    @media(max-width:760px){
+      .gauges-grid{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:6px;
+        align-items:stretch;
+      }
+
+      .gauge-card{
+        padding:8px 4px 9px;
+        border-radius:12px;
+        min-width:0;
+        overflow:hidden;
+      }
+
+      .gauge-title{
+        min-height:28px;
+        font-size:.58rem;
+        line-height:1.1;
+        padding:0 2px;
+      }
+
+      .gauge-wrap,
+      .gauge-card.main .gauge-wrap{
+        width:100%;
+        max-width:92px;
+        height:58px;
+        margin:4px auto 0;
+      }
+
+      .gauge-svg{
+        width:100%;
+        height:100%;
+        overflow:visible;
+      }
+
+      .gauge-base,
+      .gauge-sell,
+      .gauge-neutral,
+      .gauge-buy{
+        stroke-width:11;
+      }
+
+      .gauge-needle{
+        stroke-width:3;
+      }
+
+      .gauge-labels,
+      .gauge-card.main .gauge-labels{
+        font-size:.43rem;
+        line-height:1;
+      }
+
+      .gauge-labels .left{left:2px;bottom:4px}
+      .gauge-labels .center{top:0}
+      .gauge-labels .right{right:2px;bottom:4px}
+
+      .gauge-result{
+        min-width:0;
+        width:100%;
+        margin-top:5px;
+        padding:5px 2px;
+        font-size:.52rem;
+        line-height:1;
+        white-space:nowrap;
+      }
+    }
+
+    @media(max-width:420px){
+      .gauges-grid{gap:4px}
+      .gauge-card{padding:7px 3px 8px}
+      .gauge-title{font-size:.52rem}
+      .gauge-wrap,
+      .gauge-card.main .gauge-wrap{
+        max-width:84px;
+        height:54px;
+      }
+      .gauge-result{font-size:.48rem}
+    }
+
+.gauge-card{padding:8px 3px}
+      .gauge-title{font-size:.58rem}
+      .gauge-wrap,
+      .gauge-card.main .gauge-wrap{
+        max-width:98px;
+        height:66px;
+      }
+      .gauge-result{font-size:.52rem}
+    }
+
+    .deliomkt-status{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:5px;
+    }
+
+    .deliomkt-header-logo{
+      display:block;
+      width:auto;
+      height:42px;
+      object-fit:contain;
+    }
+
+    .monitoring-small{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      color:var(--muted);
+      font-size:.66rem;
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .monitoring-small .pulse{
+      width:6px;
+      height:6px;
+      box-shadow:0 0 0 4px rgba(47,212,154,.08);
+    }
+
+    @media(max-width:520px){
+      .deliomkt-header-logo{
+        height:32px;
+      }
+
+      .monitoring-small{
+        font-size:.58rem;
+      }
+    }
+
+    .gauge-wrap{
+      overflow:visible;
+    }
+
+    .gauge-labels .left,
+    .gauge-labels .center,
+    .gauge-labels .right{
+      white-space:nowrap;
+    }
+
+    .deliomkt-header-logo{
+      background:transparent !important;
+      mix-blend-mode:normal;
+    }
+
+    footer{
+      margin-top:20px;
+      text-align:center;
+      color:var(--muted);
+      font-size:.75rem;
+    }
+
+    @media(max-width:980px){
+      .layout{grid-template-columns:1fr}
+    }
+
+    @media(max-width:760px){
+      .hero{grid-template-columns:1fr}
+      .chart-shell{height:250px}
+    }
+
+    @media(max-width:520px){
+      .app{width:min(100% - 18px,1280px);padding-top:10px}
+      .panel{border-radius:18px}
+      .hero,.chart-panel,.side-panel,.analysis-panel,.timeline-panel{padding:18px}
+      .chart-head{flex-direction:column}
+      .trend-box{text-align:left}
+      .chart-shell{height:210px}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">XAU</div><div><h1>XAU/USD 15min</h1>
+          <p>Alertas inteligentes</p>
+        </div>
+      </div>
+
+      <div class="brand-status deliomkt-status">
+        <img class="deliomkt-header-logo" src="deliomkt-logo.png" alt="DelioMkt">
+        <div class="monitoring-small"><span class="pulse"></span> Monitoramento ativo</div>
+      </div>
+    </header>
+
+    <section class="layout">
+      <div class="stack">
+        <article class="panel hero">
+          <div>
+            <div class="eyebrow">Cotação monitorada • XAU/USD</div>
+            <div class="price"><span id="price">4.060,00</span><small>USD</small></div>
+            <div class="hero-analysis">
+              <div class="eyebrow">Justificativa da IA</div>
+              <p class="analysis-text" id="reason">
+                O preço consolidou e encontrou suporte após uma forte pernada de alta. O último candle demonstrou pressão compradora e possível continuação da tendência.
+              </p>
+            </div>
+
+          </div>
+
+          <div class="signal-box">
+            <div class="signal-top">
+              <div class="eyebrow">Último alerta aprovado</div>
+              <span class="approved">Passou no filtro</span>
+            </div>
+
+            <div class="signal">
+              <span class="signal-icon">▲</span>
+              <span id="signal">BUY</span>
+            </div>
+
+            <div class="confidence">
+              <div class="confidence-head">
+                <span>Confiança</span>
+                <strong id="confidence">88%</strong>
+              </div>
+              <div class="track"><div class="fill" id="confidenceFill"></div></div>
+            </div>
+
+            <div class="mail-status">
+              <div>✉</div>
+              <div>
+                <strong>Parâmetros enviados por e-mail</strong>
+                <span id="emailInfo">Último envio realizado às 19:50</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel chart-panel">
+          <div class="chart-head">
+            <div>
+              <div class="eyebrow">Gráfico ao vivo • últimos candles</div>
+            </div>
+            <div class="trend-box">
+              <strong id="trendDirection">Carregando tendência...</strong>
+              <span id="trendCaption">Gráfico e medidores atualizados a cada 15 minutos</span>
+            </div>
+          </div>
+
+          <div class="chart-shell">
+            <canvas id="liveChart"></canvas>
+            <span class="chart-label left" id="chartStart">Carregando...</span>
+            <span class="chart-label right" id="chartEnd">Preço atual</span>
+          </div>
+
+          <div class="chart-foot">
+            <span id="oldestTime">Mais antigo</span>
+            <span id="latestTime">Mais recente</span>
+          </div>
+        </article>
+
+
+        <article class="panel gauges-panel">
+          <div class="eyebrow">Leitura técnica consolidada</div>
+
+          <div class="gauges-grid">
+            <div class="gauge-card">
+              <div class="gauge-title">Indicadores Técnicos</div>
+
+              <div class="gauge-wrap">
+                <svg class="gauge-svg" viewBox="0 0 200 120" aria-label="Medidor de indicadores técnicos">
+                  <path class="gauge-base" d="M25 100 A75 75 0 0 1 175 100"/>
+                  <path class="gauge-sell" d="M25 100 A75 75 0 0 1 62 35"/>
+                  <path class="gauge-neutral" d="M62 35 A75 75 0 0 1 138 35"/>
+                  <path class="gauge-buy" d="M138 35 A75 75 0 0 1 175 100"/>
+                  <line id="needleTech" class="gauge-needle" x1="100" y1="100" x2="100" y2="43"/>
+                  <circle class="gauge-center" cx="100" cy="100" r="4.5"/>
+                </svg>
+                <div class="gauge-labels">
+                  <span class="left">V</span>
+                  <span class="center">N</span>
+                  <span class="right">C</span>
+                </div>
+              </div>
+
+              <div class="gauge-result soft" id="techResult">Compra Forte</div>
+            </div>
+
+            <div class="gauge-card main">
+              <div class="gauge-title">Resumo</div>
+
+              <div class="gauge-wrap">
+                <svg class="gauge-svg" viewBox="0 0 200 120" aria-label="Medidor de resumo">
+                  <path class="gauge-base" d="M25 100 A75 75 0 0 1 175 100"/>
+                  <path class="gauge-sell" d="M25 100 A75 75 0 0 1 62 35"/>
+                  <path class="gauge-neutral" d="M62 35 A75 75 0 0 1 138 35"/>
+                  <path class="gauge-buy" d="M138 35 A75 75 0 0 1 175 100"/>
+                  <line id="needleSummary" class="gauge-needle" x1="100" y1="100" x2="100" y2="38"/>
+                  <circle class="gauge-center" cx="100" cy="100" r="4.5"/>
+                </svg>
+                <div class="gauge-labels">
+                  <span class="left">VF</span>
+                  <span class="center">N</span>
+                  <span class="right">CF</span>
+                </div>
+              </div>
+
+              <div class="gauge-result" id="summaryResult">Compra Forte</div>
+            </div>
+
+            <div class="gauge-card">
+              <div class="gauge-title">Médias Móveis</div>
+
+              <div class="gauge-wrap">
+                <svg class="gauge-svg" viewBox="0 0 200 120" aria-label="Medidor de médias móveis">
+                  <path class="gauge-base" d="M25 100 A75 75 0 0 1 175 100"/>
+                  <path class="gauge-sell" d="M25 100 A75 75 0 0 1 62 35"/>
+                  <path class="gauge-neutral" d="M62 35 A75 75 0 0 1 138 35"/>
+                  <path class="gauge-buy" d="M138 35 A75 75 0 0 1 175 100"/>
+                  <line id="needleMA" class="gauge-needle" x1="100" y1="100" x2="100" y2="43"/>
+                  <circle class="gauge-center" cx="100" cy="100" r="4.5"/>
+                </svg>
+                <div class="gauge-labels">
+                  <span class="left">V</span>
+                  <span class="center">N</span>
+                  <span class="right">C</span>
+                </div>
+              </div>
+
+              <div class="gauge-result soft" id="maResult">Compra</div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <aside class="stack">
+
+        <article class="panel timeline-panel">
+          <div class="eyebrow">Detalhes da execução</div>
+          <div class="timeline">
+            <div class="timeline-row"><span>Status</span><strong class="positive">Enviado</strong></div>
+            <div class="timeline-row"><span>Último alerta</span><strong id="lastAlert">Hoje, 19:50</strong></div>
+            <div class="timeline-row"><span>Canal</span><strong>E-mail</strong></div>
+            <div class="timeline-row"><span>Gráfico e medidores</span><strong>A cada 15 minutos</strong></div>
+            <div class="timeline-row"><span>Leitura</span><strong>M15</strong></div>
+          </div>
+        </article>
+      </aside>
+    </section>
+
+    <footer>
+      Ferramenta de acompanhamento. Não constitui recomendação financeira nem garantia de resultado.
+    </footer>
+  </main>
+
+  <script>
+    const operation = {
+      signal: "BUY",
+      confidence: 88,
+      time: "Hoje, 19:50",
+      reason: "O preço consolidou e encontrou suporte após uma forte pernada de alta. O último candle demonstrou pressão compradora e possível continuação da tendência."
+    };
+
+    document.getElementById("signal").textContent = operation.signal;
+    document.getElementById("confidence").textContent = operation.confidence + "%";
+    document.getElementById("confidenceFill").style.width = Math.min(operation.confidence,100) + "%";
+    document.getElementById("lastAlert").textContent = operation.time;
+    document.getElementById("emailInfo").textContent =
+      "Último envio realizado às " + operation.time.replace("Hoje, ","");
+    document.getElementById("reason").textContent = operation.reason;
+
+    const priceEl = document.getElementById("price");
+    const updateEl = document.getElementById("liveUpdate");
+    const trendEl = document.getElementById("trendDirection");
+    const trendCaption = document.getElementById("trendCaption");
+    const canvas = document.getElementById("liveChart");
+    const ctx = canvas.getContext("2d");
+
+    function formatPrice(value){
+      return new Intl.NumberFormat("pt-BR",{
+        minimumFractionDigits:2,
+        maximumFractionDigits:2
+      }).format(value);
+    }
+
+    function formatTime(datetime){
+      const date = new Date(datetime.replace(" ","T") + "Z");
+      if(Number.isNaN(date.getTime())) return datetime;
+      return date.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+    }
+
+    function drawChart(values){
+      const ratio = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1,Math.round(rect.width * ratio));
+      canvas.height = Math.max(1,Math.round(rect.height * ratio));
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+
+      const width = rect.width;
+      const height = rect.height;
+      const padding = {top:24,right:18,bottom:22,left:18};
+      const closes = values.map(v=>Number(v.close)).filter(Number.isFinite);
+      if(closes.length < 2) return;
+
+      const min = Math.min(...closes);
+      const max = Math.max(...closes);
+      const range = Math.max(max-min,.01);
+
+      const pts = closes.map((value,index)=>({
+        x:padding.left + (index/(closes.length-1))*(width-padding.left-padding.right),
+        y:padding.top + ((max-value)/range)*(height-padding.top-padding.bottom)
+      }));
+
+      ctx.clearRect(0,0,width,height);
+
+      const grad = ctx.createLinearGradient(0,padding.top,0,height);
+      grad.addColorStop(0,"rgba(47,212,154,.28)");
+      grad.addColorStop(1,"rgba(47,212,154,0)");
+
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x,height-padding.bottom);
+      pts.forEach(p=>ctx.lineTo(p.x,p.y));
+      ctx.lineTo(pts[pts.length-1].x,height-padding.bottom);
+      ctx.closePath();
+      ctx.fillStyle=grad;
+      ctx.fill();
+
+      ctx.beginPath();
+      pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+      ctx.strokeStyle="#2fd49a";
+      ctx.lineWidth=3;
+      ctx.lineCap="round";
+      ctx.lineJoin="round";
+      ctx.shadowColor="rgba(47,212,154,.35)";
+      ctx.shadowBlur=10;
+      ctx.stroke();
+      ctx.shadowBlur=0;
+
+      const last=pts[pts.length-1];
+      ctx.beginPath();
+      ctx.arc(last.x,last.y,5,0,Math.PI*2);
+      ctx.fillStyle="#2fd49a";
+      ctx.fill();
+    }
+
+    function classifyVolatility(values){
+      const ranges = values.map(v=>Number(v.high)-Number(v.low)).filter(Number.isFinite);
+      if(!ranges.length) return "Indisponível";
+      const avg = ranges.reduce((a,b)=>a+b,0)/ranges.length;
+      if(avg > 12) return "Alta";
+      if(avg > 6) return "Média";
+      return "Baixa";
+    }
+
+    function updateGauge(needleId, resultId, score){
+      const needle=document.getElementById(needleId);
+      const result=document.getElementById(resultId);
+      if(!needle || !result) return;
+
+      const clamped=Math.max(-1,Math.min(1,score));
+      const angle=clamped*75;
+      needle.style.transform=`rotate(${angle}deg)`;
+
+      let text="Neutro";
+      let cls="gauge-result warning";
+
+      if(clamped>=.55){
+        text="Compra Forte";
+        cls="gauge-result";
+      }else if(clamped>=.15){
+        text="Compra";
+        cls="gauge-result soft";
+      }else if(clamped<=-.55){
+        text="Venda Forte";
+        cls="gauge-result negative";
+      }else if(clamped<=-.15){
+        text="Venda";
+        cls="gauge-result negative";
+      }
+
+      result.textContent=text;
+      result.className=cls;
+    }
+
+    async function loadPrice(){
+      try{
+        updateEl.textContent="atualizando...";
+        const response = await fetch("/.netlify/functions/price",{
+          headers:{"Accept":"application/json"},
+          cache:"no-store"
+        });
+
+        if(!response.ok){
+          const error=await response.json().catch(()=>({}));
+          throw new Error(error.message || "Falha ao consultar o preço");
+        }
+
+        const data=await response.json();
+        const current=Number(data.price);
+        if(!Number.isFinite(current)) throw new Error("Preço inválido");
+
+        priceEl.textContent=formatPrice(current);
+        updateEl.textContent=new Date().toLocaleTimeString("pt-BR",{
+          hour:"2-digit",minute:"2-digit",second:"2-digit"
+        });
+      }catch(error){
+        console.error(error);
+        updateEl.textContent="falha";
+      }
+    }
+
+    async function loadAnalysis(){
+      try{
+        trendCaption.textContent="Atualizando gráfico e medidores...";
+        const response = await fetch("/.netlify/functions/analysis",{
+          headers:{"Accept":"application/json"},
+          cache:"no-store"
+        });
+
+        if(!response.ok){
+          const error=await response.json().catch(()=>({}));
+          throw new Error(error.message || "Falha ao consultar os candles");
+        }
+
+        const data=await response.json();
+        const values=Array.isArray(data.values)?data.values.slice().reverse():[];
+        if(!values.length) throw new Error("Sem candles");
+
+        const first=values[0];
+        const latest=values[values.length-1];
+        const initial=Number(first.close);
+        const current=Number(latest.close);
+        const change=current-initial;
+        const changePct=initial?(change/initial)*100:0;
+
+        drawChart(values);
+
+        const direction = change>0 ? "↗ Tendência de alta" :
+                          change<0 ? "↘ Tendência de baixa" :
+                          "→ Tendência lateral";
+
+        trendEl.textContent=direction;
+        trendEl.style.color=change>0?"var(--green)":change<0?"var(--red)":"var(--gold)";
+        trendCaption.textContent=
+          `${values.length} candles M15 • ${changePct>=0?"+":""}${changePct.toFixed(2)}%`;
+
+        const volatility=classifyVolatility(values);
+
+        const normalizedScore=Math.max(-1,Math.min(1,changePct/1.2));
+        updateGauge("needleTech","techResult",normalizedScore*.95);
+        updateGauge("needleSummary","summaryResult",normalizedScore);
+        updateGauge("needleMA","maResult",normalizedScore*.75);
+
+        document.getElementById("chartStart").textContent=formatPrice(initial);
+        document.getElementById("chartEnd").textContent=formatPrice(current);
+        document.getElementById("oldestTime").textContent=formatTime(first.datetime);
+        document.getElementById("latestTime").textContent=formatTime(latest.datetime);
+      }catch(error){
+        console.error(error);
+        trendEl.textContent="Dados indisponíveis";
+        trendEl.style.color="var(--red)";
+        trendCaption.textContent="Verifique a configuração no Netlify";
+      }
+    }
+
+    let remaining=15*60;
+
+    function tickCountdown(){
+      remaining--;
+      if(remaining<=0){
+        remaining=15*60;
+        loadAnalysis();
+      }
+      const m=String(Math.floor(remaining/60)).padStart(2,"0");
+      const s=String(remaining%60).padStart(2,"0");
+      document.getElementById("countdown").textContent=`00:${m}:${s}`;
+    }
+
+    loadPrice();
+    loadAnalysis();
+
+    setInterval(loadPrice,60*1000);
+    setInterval(tickCountdown,1000);
+
+    window.addEventListener("resize",()=>loadAnalysis());
+  </script>
+</body>
+</html>
