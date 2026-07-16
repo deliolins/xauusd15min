@@ -1108,14 +1108,10 @@
 
         drawChart(values);
 
-        const direction = change>0 ? "↗ Tendência de alta" :
-                          change<0 ? "↘ Tendência de baixa" :
-                          "→ Tendência lateral";
-
-        trendEl.textContent=direction;
-        trendEl.style.color=change>0?"var(--green)":change<0?"var(--red)":"var(--gold)";
+        trendEl.textContent="📊 Histórico dos últimos 40 candles";
+        trendEl.style.color="var(--text)";
         trendCaption.textContent=
-          `${values.length} candles M15 • ${changePct>=0?"+":""}${changePct.toFixed(2)}%`;
+          `Variação do período: ${changePct>=0?"+":""}${changePct.toFixed(2)}%`;
 
         const volatility=classifyVolatility(values);
 
